@@ -979,7 +979,7 @@
     <div class="main-content">
         <div class="static-banner" id="static-banner" style="display:none;">
             <i class="fas fa-info-circle"></i>
-            <span>当前为纯前端演示版本。配置大模型API密钥后即可使用真实AI功能（支持通义千问/DeepSeek/Kimi/智谱GLM等），请<a href="#" onclick="openConfigModal();return false;">配置大模型API密钥</a>或在本地部署完整后端服务。</span>
+            <span><strong>演示模式</strong> — 当前未配置AI密钥，所有功能使用演示数据。<a href="#" onclick="openConfigModal();return false;" style="font-weight:600;text-decoration:underline;">点击此处配置API密钥</a> 即可启用真实AI（支持通义千问/DeepSeek/Kimi/智谱GLM等10+模型，免费额度可用）。<span style="font-size:11px;opacity:0.7;">v2.1</span></span>
         </div>
         <div class="tabs">
             <button class="tab active" data-tab="script">
@@ -1656,12 +1656,15 @@
         // 页面加载时检查AI配置状态
         (async function() {
             if (IS_STATIC) {
-                document.getElementById('static-banner').style.display = 'flex';
                 const cfg = getStoredConfig();
                 if (cfg.provider && cfg.api_key) {
                     updateAIStatus(cfg.provider, true);
+                    document.getElementById('static-banner').style.display = 'none';
+                    const labels = {dashscope:'通义千问', deepseek:'DeepSeek', kimi:'Kimi', zhipu:'智谱GLM', lingyi:'零一万物', minimax:'MiniMax', baichuan:'百川', doubao:'豆包', openai:'GPT-4o', custom:'自定义接口'};
+                    showToast('AI已连接（' + (labels[cfg.provider] || cfg.provider) + '），所有功能可正常使用', 'success');
                 } else {
                     updateAIStatus('mock', false);
+                    document.getElementById('static-banner').style.display = 'flex';
                 }
                 return;
             }
@@ -1750,6 +1753,8 @@
                 const labels = {dashscope:'通义千问', deepseek:'DeepSeek', kimi:'Kimi', zhipu:'智谱GLM', lingyi:'零一万物', minimax:'MiniMax', baichuan:'百川', doubao:'豆包', openai:'GPT-4o', custom:'自定义接口'};
                 resultEl.textContent = `✅ API密钥已保存到浏览器（${labels[provider] || provider}）`;
                 updateAIStatus(provider, true);
+                document.getElementById('static-banner').style.display = 'none';
+                showToast('AI配置成功！所有功能现已启用真实AI生成', 'success');
                 setTimeout(() => { closeConfigModal(); }, 1500);
                 return;
             }
@@ -1976,15 +1981,50 @@
             return null;
         }
 
+        // ============================================================
+        // Toast通知系统
+        // ============================================================
+        function showToast(msg, type) {
+            type = type || 'info';
+            let toast = document.getElementById('app-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'app-toast';
+                toast.style.cssText = 'position:fixed;top:80px;right:24px;z-index:10000;max-width:420px;padding:14px 20px;border-radius:10px;font-size:14px;line-height:1.5;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:opacity 0.3s;display:none;';
+                document.body.appendChild(toast);
+            }
+            const styles = {
+                error: 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca;',
+                success: 'background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;',
+                info: 'background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;',
+                warning: 'background:#fffbeb;color:#d97706;border:1px solid #fde68a;'
+            };
+            toast.style.cssText += styles[type] || styles.info;
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            toast.style.opacity = '1';
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => { toast.style.display = 'none'; }, 300);
+            }, 6000);
+        }
+
         async function callAPI(endpoint, data) {
             // 静态托管模式
             if (IS_STATIC) {
                 // 如果已配置AI密钥，尝试通过前端直调LLM来处理请求
                 if (isAIConfigured()) {
                     try {
-                        return await handleStaticAIRequest(endpoint, data);
+                        const result = await handleStaticAIRequest(endpoint, data);
+                        if (result === null) {
+                            // 端点未处理，走mock
+                            return null;
+                        }
+                        return result;
                     } catch(error) {
                         console.error('[静态模式] AI调用失败:', error);
+                        showToast('AI调用失败: ' + error.message + '\n请检查API密钥是否正确，或稍后重试。已使用演示数据替代。', 'error');
                         // AI调用失败时返回特殊标记，让调用方知道是AI错误
                         return { success: false, error: error.message, ai_error: true };
                     }
@@ -2145,10 +2185,11 @@
                 return;
             }
 
-            showLoading('正在生成脚本...', 'AI正在编写专业的安全培训脚本');
+            const usingAI = IS_STATIC ? isAIConfigured() : true;
+            showLoading('正在生成脚本...', usingAI ? 'AI正在编写专业的安全培训脚本' : '正在生成演示脚本（未配置AI密钥）');
 
             const data = await callAPI('/api/safety/generate-script', { topic, length: duration });
-            
+
             if (data && data.success) {
                 currentScript = data.script;
                 document.getElementById('script-content').textContent = data.script;
@@ -2157,6 +2198,7 @@
                 document.getElementById('distribution-script').value = data.script;
                 document.getElementById('remix-script-input').value = data.script;
                 document.getElementById('copy-topic-input').value = data.script;
+                if (usingAI) showToast('✅ AI脚本生成成功', 'success');
             } else {
                 const mockScript = generateMockScript(topic);
                 currentScript = mockScript;
@@ -2166,6 +2208,9 @@
                 document.getElementById('distribution-script').value = mockScript;
                 document.getElementById('remix-script-input').value = mockScript;
                 document.getElementById('copy-topic-input').value = mockScript;
+                if (!data || !data.ai_error) {
+                    showToast('当前为演示模式，如需AI生成请点击右上角配置API密钥', 'warning');
+                }
             }
 
             hideLoading();

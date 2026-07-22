@@ -112,6 +112,26 @@
             padding: 24px;
         }
 
+        .static-banner {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05));
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            color: #fbbf24;
+        }
+        .static-banner i {
+            font-size: 18px;
+        }
+        .static-banner a {
+            color: #60a5fa;
+            text-decoration: underline;
+        }
+
         .tabs {
             display: flex;
             gap: 8px;
@@ -951,11 +971,16 @@
         </div>
         <div class="status-indicator">
             <span class="status-dot"></span>
-            <span>系统运行中</span>
+            <span id="ai-status-text">系统运行中</span>
+            <button onclick="openConfigModal()" style="margin-left:12px;padding:4px 12px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:#fff;cursor:pointer;font-size:13px;">配置大模型</button>
         </div>
     </div>
 
     <div class="main-content">
+        <div class="static-banner" id="static-banner" style="display:none;">
+            <i class="fas fa-info-circle"></i>
+            <span>当前为纯前端演示版本，所有内容由本地模板生成。如需AI智能生成，请<a href="#" onclick="openConfigModal();return false;">配置大模型API密钥</a>或在本地部署完整后端服务。</span>
+        </div>
         <div class="tabs">
             <button class="tab active" data-tab="script">
                 <i class="fas fa-file-alt"></i>
@@ -1410,9 +1435,165 @@
         </div>
     </div>
 
+    <!-- API配置弹窗 -->
+    <div id="config-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:12px;padding:32px;width:480px;max-width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+            <h3 style="margin:0 0 8px;font-size:20px;color:#1a1a2e;">大模型API配置</h3>
+            <p style="margin:0 0 20px;font-size:14px;color:#666;">配置API密钥后，所有AI功能将使用真实大模型生成内容</p>
+            
+            <div style="margin-bottom:16px;">
+                <label style="display:block;margin-bottom:6px;font-size:14px;font-weight:600;color:#333;">AI服务提供商</label>
+                <select id="config-provider" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;">
+                    <option value="dashscope">阿里云 DashScope (通义千问) - 推荐</option>
+                    <option value="openai">OpenAI (GPT-4o-mini)</option>
+                </select>
+            </div>
+            
+            <div style="margin-bottom:16px;">
+                <label style="display:block;margin-bottom:6px;font-size:14px;font-weight:600;color:#333;">API密钥</label>
+                <input type="password" id="config-api-key" placeholder="sk-xxxxxxxxxxxxxxxx" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;" />
+            </div>
+            
+            <div id="config-help" style="margin-bottom:20px;padding:12px;background:#f5f7fa;border-radius:8px;font-size:13px;color:#666;line-height:1.6;">
+                <div id="help-dashscope">
+                    获取方式：访问 <a href="https://dashscope.console.aliyun.com/" target="_blank" style="color:#4a6cf7;">阿里云DashScope</a> → 注册登录 → 创建API-KEY<br/>
+                    免费额度：新用户赠送100万Token
+                </div>
+                <div id="help-openai" style="display:none;">
+                    获取方式：访问 <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#4a6cf7;">OpenAI平台</a> → 创建API Key<br/>
+                    需要绑定支付方式
+                </div>
+            </div>
+            
+            <div style="display:flex;gap:12px;">
+                <button onclick="closeConfigModal()" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#333;cursor:pointer;font-size:14px;">取消</button>
+                <button onclick="saveApiKey()" style="flex:1;padding:10px;border:none;border-radius:8px;background:#4a6cf7;color:#fff;cursor:pointer;font-size:14px;font-weight:600;">保存配置</button>
+            </div>
+            
+            <div id="config-result" style="margin-top:16px;display:none;padding:10px;border-radius:8px;font-size:13px;"></div>
+        </div>
+    </div>
+
     <script>
         let currentScript = '';
         const API_BASE = '';
+        // 检测是否在静态托管环境（GitHub Pages等无后端环境）
+        const IS_STATIC = window.location.hostname.includes('github.io') ||
+                          window.location.protocol === 'file:' ||
+                          window.location.hostname === 'localhost' && window.location.port === '';
+
+        // localStorage配置管理
+        function getStoredConfig() {
+            try {
+                return JSON.parse(localStorage.getItem('ai_config') || '{}');
+            } catch(e) { return {}; }
+        }
+        function setStoredConfig(cfg) {
+            localStorage.setItem('ai_config', JSON.stringify(cfg));
+        }
+
+        // 页面加载时检查AI配置状态
+        (async function() {
+            if (IS_STATIC) {
+                document.getElementById('static-banner').style.display = 'flex';
+                const cfg = getStoredConfig();
+                if (cfg.provider && cfg.api_key) {
+                    updateAIStatus(cfg.provider, true);
+                } else {
+                    updateAIStatus('mock', false);
+                }
+                return;
+            }
+            try {
+                const resp = await fetch(`${API_BASE}/api/config/ai-status`);
+                const data = await resp.json();
+                if (data.success) {
+                    updateAIStatus(data.client_type, data.is_configured);
+                }
+            } catch(e) {}
+        })();
+
+        function updateAIStatus(type, configured) {
+            const el = document.getElementById('ai-status-text');
+            const apiStatusEl = document.querySelector('.api-status span');
+            if (configured) {
+                const label = type === 'dashscope' ? '通义千问' : (type === 'openai' ? 'GPT-4o' : type);
+                el.textContent = `AI已连接 (${label})`;
+                if (apiStatusEl) apiStatusEl.textContent = `当前使用 ${label} 大模型生成内容`;
+            } else {
+                el.textContent = IS_STATIC ? '纯前端演示' : '模拟模式';
+                if (apiStatusEl) apiStatusEl.textContent = IS_STATIC ? '当前为纯前端演示模式，所有内容由本地模板生成' : '当前使用模拟模式，点击右上角"配置大模型"启用AI';
+            }
+        }
+
+        function openConfigModal() {
+            document.getElementById('config-modal').style.display = 'flex';
+            document.getElementById('config-result').style.display = 'none';
+        }
+
+        function closeConfigModal() {
+            document.getElementById('config-modal').style.display = 'none';
+        }
+
+        document.getElementById('config-provider').addEventListener('change', function() {
+            document.getElementById('help-dashscope').style.display = this.value === 'dashscope' ? 'block' : 'none';
+            document.getElementById('help-openai').style.display = this.value === 'openai' ? 'block' : 'none';
+        });
+
+        async function saveApiKey() {
+            const provider = document.getElementById('config-provider').value;
+            const apiKey = document.getElementById('config-api-key').value.trim();
+            const resultEl = document.getElementById('config-result');
+
+            if (!apiKey) {
+                resultEl.style.display = 'block';
+                resultEl.style.background = '#fff3f3';
+                resultEl.style.color = '#c33';
+                resultEl.textContent = '请输入API密钥';
+                return;
+            }
+
+            resultEl.style.display = 'block';
+            resultEl.style.background = '#f0f7ff';
+            resultEl.style.color = '#4a6cf7';
+            resultEl.textContent = '正在保存并验证...';
+
+            // 静态模式下直接保存到localStorage
+            if (IS_STATIC) {
+                setStoredConfig({ provider, api_key: apiKey });
+                resultEl.style.background = '#f0fff0';
+                resultEl.style.color = '#2a8';
+                resultEl.textContent = `✅ API密钥已保存到浏览器（${provider === 'dashscope' ? 'DashScope' : 'OpenAI'}）`;
+                updateAIStatus(provider, true);
+                setTimeout(() => { closeConfigModal(); }, 1500);
+                return;
+            }
+
+            try {
+                const resp = await fetch(`${API_BASE}/api/config/set-api-key`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ provider, api_key: apiKey })
+                });
+                const data = await resp.json();
+
+                if (data.success) {
+                    resultEl.style.background = '#f0fff0';
+                    resultEl.style.color = '#2a8';
+                    resultEl.textContent = `✅ ${data.message}`;
+                    updateAIStatus(data.client_type, data.is_configured);
+                    setTimeout(() => { closeConfigModal(); }, 1500);
+                } else {
+                    resultEl.style.background = '#fff3f3';
+                    resultEl.style.color = '#c33';
+                    resultEl.textContent = `❌ ${data.error}`;
+                }
+            } catch(e) {
+                resultEl.style.background = '#fff3f3';
+                resultEl.style.color = '#c33';
+                resultEl.textContent = `❌ 网络错误: ${e.message}`;
+            }
+        }
 
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -1463,6 +1644,11 @@
         }
 
         async function callAPI(endpoint, data) {
+            // 静态托管模式下直接返回null，触发现有的mock回退
+            if (IS_STATIC) {
+                console.log('[静态模式] Mock API:', endpoint);
+                return null;
+            }
             try {
                 const response = await fetch(`${API_BASE}${endpoint}`, {
                     method: 'POST',

@@ -2294,7 +2294,6 @@
             const grid = document.getElementById('storyboard-grid');
             grid.innerHTML = '';
 
-            // 安全生产的画面配色方案
             const colorSchemes = [
                 ['#1e3a5f', '#3b82f6'], ['#1a4d3a', '#10b981'], ['#5f1e3a', '#ec4899'],
                 ['#3a1e5f', '#8b5cf6'], ['#5f3a1e', '#f97316'], ['#1e5f5f', '#06b6d4'],
@@ -2305,24 +2304,23 @@
                 const card = document.createElement('div');
                 card.className = 'storyboard-card';
 
-                const promptText = shot.visual_prompt || shot.description || 'safety production scene';
+                const promptText = shot.visual_prompt || shot.description || 'safety production scene, industrial, professional';
                 const desc = (shot.description || '画面描述').replace(/'/g, "\\'").replace(/"/g, '&quot;');
                 const shotNum = shot.shot_number || index + 1;
                 const colors = colorSchemes[index % colorSchemes.length];
-                // 简化prompt，只保留关键词，减少URL长度
-                const shortPrompt = promptText.substring(0, 80);
-                const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(shortPrompt)}?width=512&height=320&nologo=true&seed=${index + 1}`;
+                // 简化prompt + 安全主题强化
+                const shortPrompt = (promptText + ', safety production, industrial, cinematic lighting, high quality').substring(0, 100);
+                const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(shortPrompt)}?width=640&height=360&nologo=true&seed=${index + 1}`;
 
-                // 先用CSS渐变+图标立即展示画面，再异步加载AI图片
                 card.innerHTML = `
-                    <div class="storyboard-thumbnail" id="thumb-${index}" style="position:relative;overflow:hidden;height:160px;background:linear-gradient(135deg,${colors[0]},${colors[1]});display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                    <div class="storyboard-thumbnail" id="thumb-${index}" style="position:relative;overflow:hidden;height:180px;background:linear-gradient(135deg,${colors[0]},${colors[1]});display:flex;flex-direction:column;align-items:center;justify-content:center;">
                         <span class="shot-number">镜头 ${shotNum}</span>
-                        <div class="css-scene" style="text-align:center;color:white;z-index:2;">
+                        <div class="css-scene" style="text-align:center;color:white;z-index:2;padding:0 12px;">
                             <i class="fas fa-${index === 0 ? 'exclamation-triangle' : index === storyboard.length - 1 ? 'flag-checkered' : 'hard-hat'}" style="font-size:36px;opacity:0.9;margin-bottom:8px;"></i>
-                            <p style="font-size:13px;font-weight:600;text-shadow:0 2px 4px rgba(0,0,0,0.5);padding:0 12px;">${desc}</p>
+                            <p style="font-size:13px;font-weight:600;text-shadow:0 2px 4px rgba(0,0,0,0.5);">${desc}</p>
                         </div>
-                        <div class="ai-loading" style="position:absolute;bottom:6px;right:8px;font-size:10px;color:rgba(255,255,255,0.7);z-index:3;">
-                            <i class="fas fa-circle-notch fa-spin"></i> AI画面生成中
+                        <div class="ai-loading" id="loading-${index}" style="position:absolute;bottom:6px;right:8px;font-size:10px;color:rgba(255,255,255,0.9);z-index:3;background:rgba(0,0,0,0.5);padding:2px 6px;border-radius:4px;">
+                            <i class="fas fa-circle-notch fa-spin"></i> AI画面生成中...
                         </div>
                     </div>
                     <div class="storyboard-info">
@@ -2333,7 +2331,7 @@
                             <button onclick="downloadStoryboardImage(${index}, '${imageUrl}')" style="padding:4px 10px;font-size:11px;background:#3b82f6;color:white;border:none;border-radius:4px;cursor:pointer;">
                                 <i class="fas fa-download"></i> 下载图片
                             </button>
-                            <button onclick="generateSingleVideo('${encodeURIComponent(shortPrompt)}', '${shotNum}')" style="padding:4px 10px;font-size:11px;background:#8b5cf6;color:white;border:none;border-radius:4px;cursor:pointer;">
+                            <button onclick="generateSingleVideo(${index}, '${encodeURIComponent(shortPrompt)}', '${shotNum}')" style="padding:4px 10px;font-size:11px;background:#8b5cf6;color:white;border:none;border-radius:4px;cursor:pointer;">
                                 <i class="fas fa-video"></i> 生成视频
                             </button>
                         </div>
@@ -2341,27 +2339,8 @@
                 `;
                 grid.appendChild(card);
 
-                // 异步加载AI图片，成功后替换CSS画面
-                const img = new Image();
-                img.onload = function() {
-                    const thumb = document.getElementById('thumb-' + index);
-                    if (thumb) {
-                        thumb.innerHTML = `
-                            <span class="shot-number">镜头 ${shotNum}</span>
-                            <img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" />
-                        `;
-                        thumb.style.background = '#000';
-                    }
-                };
-                img.onerror = function() {
-                    // 加载失败，保持CSS画面，移除loading提示
-                    const thumb = document.getElementById('thumb-' + index);
-                    if (thumb) {
-                        const loading = thumb.querySelector('.ai-loading');
-                        if (loading) loading.innerHTML = '<i class="fas fa-info-circle"></i> CSS预览';
-                    }
-                };
-                img.src = imageUrl;
+                // 带重试机制的图片加载
+                loadStoryboardImage(index, imageUrl, shotNum, 0);
             });
 
             grid.style.display = 'grid';
@@ -2372,8 +2351,53 @@
             }
         }
 
+        // 带重试的图片加载函数
+        function loadStoryboardImage(index, imageUrl, shotNum, retryCount) {
+            const img = new Image();
+            const maxRetries = 3;
+            const timeout = setTimeout(() => {
+                if (retryCount < maxRetries) {
+                    console.log(`[镜头${index+1}] 加载超时，重试 ${retryCount + 1}/${maxRetries}`);
+                    loadStoryboardImage(index, imageUrl + '&retry=' + (retryCount + 1), shotNum, retryCount + 1);
+                } else {
+                    markImageFailed(index);
+                }
+            }, 60000); // 60秒超时
+
+            img.onload = function() {
+                clearTimeout(timeout);
+                const thumb = document.getElementById('thumb-' + index);
+                const loading = document.getElementById('loading-' + index);
+                if (thumb) {
+                    thumb.innerHTML = `
+                        <span class="shot-number">镜头 ${shotNum}</span>
+                        <img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" />
+                        <div style="position:absolute;top:8px;right:8px;background:rgba(16,185,129,0.9);color:white;padding:2px 8px;border-radius:4px;font-size:10px;"><i class="fas fa-check"></i> AI生成</div>
+                    `;
+                    thumb.style.background = '#000';
+                }
+            };
+            img.onerror = function() {
+                clearTimeout(timeout);
+                if (retryCount < maxRetries) {
+                    console.log(`[镜头${index+1}] 加载失败，重试 ${retryCount + 1}/${maxRetries}`);
+                    setTimeout(() => loadStoryboardImage(index, imageUrl + '&retry=' + (retryCount + 1), shotNum, retryCount + 1), 2000);
+                } else {
+                    markImageFailed(index);
+                }
+            };
+            img.src = imageUrl;
+        }
+
+        function markImageFailed(index) {
+            const loading = document.getElementById('loading-' + index);
+            if (loading) {
+                loading.innerHTML = '<i class="fas fa-info-circle"></i> 预览图';
+                loading.style.background = 'rgba(107,114,128,0.7)';
+            }
+        }
+
         function downloadStoryboardImage(index, url) {
-            // 先尝试下载AI图片，失败则下载CSS截图
             const a = document.createElement('a');
             a.href = url;
             a.download = '镜头' + (index + 1) + '.jpg';
@@ -2381,6 +2405,116 @@
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+            showToast('图片已在新窗口打开，长按或右键保存', 'info');
+        }
+
+        // 真正的视频生成功能 - 使用Pollinations或跳转平台
+        async function generateSingleVideo(index, promptEncoded, shotNumber) {
+            const prompt = decodeURIComponent(promptEncoded);
+            
+            // 创建视频生成弹窗
+            let modal = document.getElementById('video-gen-modal');
+            if (modal) modal.remove();
+            
+            modal = document.createElement('div');
+            modal.id = 'video-gen-modal';
+            modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:10001;display:flex;align-items:center;justify-content:center;padding:20px;';
+            
+            modal.innerHTML = `
+                <div style="background:#1a1a2e;border-radius:16px;padding:28px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;color:white;border:1px solid #333;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                        <h3 style="font-size:18px;"><i class="fas fa-video" style="color:#8b5cf6;"></i> 镜头${shotNumber} 视频生成</h3>
+                        <button onclick="document.getElementById('video-gen-modal').remove()" style="background:none;border:none;color:#999;font-size:24px;cursor:pointer;">&times;</button>
+                    </div>
+                    
+                    <div style="background:#16213e;border-radius:10px;padding:14px;margin-bottom:16px;">
+                        <p style="font-size:12px;color:#9ca3af;margin-bottom:6px;">提示词：</p>
+                        <p style="font-size:13px;color:#e5e7eb;line-height:1.5;">${prompt.substring(0, 150)}${prompt.length > 150 ? '...' : ''}</p>
+                    </div>
+
+                    <div id="video-gen-status" style="text-align:center;padding:20px;">
+                        <div style="margin-bottom:16px;">
+                            <i class="fas fa-circle-notch fa-spin" style="font-size:32px;color:#8b5cf6;"></i>
+                        </div>
+                        <p id="video-status-text" style="font-size:14px;color:#e5e7eb;">准备生成视频...</p>
+                        <p id="video-status-sub" style="font-size:12px;color:#9ca3af;margin-top:6px;">视频生成需要1-3分钟，请耐心等待</p>
+                    </div>
+
+                    <div id="video-gen-result" style="display:none;">
+                        <video id="generated-video" controls style="width:100%;border-radius:10px;background:#000;"></video>
+                        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                            <a id="video-download-link" download="镜头${shotNumber}视频.mp4" style="flex:1;padding:10px;background:#10b981;color:white;text-align:center;border-radius:8px;text-decoration:none;font-size:13px;">
+                                <i class="fas fa-download"></i> 下载视频
+                            </a>
+                            <button onclick="document.getElementById('video-gen-modal').remove()" style="flex:1;padding:10px;background:#6b7280;color:white;border:none;border-radius:8px;cursor:pointer;font-size:13px;">关闭</button>
+                        </div>
+                    </div>
+
+                    <div id="video-gen-platforms" style="display:none;margin-top:16px;border-top:1px solid #333;padding-top:16px;">
+                        <p style="font-size:13px;color:#9ca3af;margin-bottom:10px;">或使用专业视频生成平台：</p>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <a href="https://klingai.kuaishou.com/" target="_blank" style="padding:8px;background:#16213e;border-radius:8px;text-decoration:none;color:#e5e7eb;font-size:12px;text-align:center;">🎬 可灵AI</a>
+                            <a href="https://jimeng.jianying.com/" target="_blank" style="padding:8px;background:#16213e;border-radius:8px;text-decoration:none;color:#e5e7eb;font-size:12px;text-align:center;">🎬 即梦AI</a>
+                            <a href="https://hailuoai.video/" target="_blank" style="padding:8px;background:#16213e;border-radius:8px;text-decoration:none;color:#e5e7eb;font-size:12px;text-align:center;">🎬 海螺AI</a>
+                            <a href="https://open.bigmodel.cn/" target="_blank" style="padding:8px;background:#16213e;border-radius:8px;text-decoration:none;color:#e5e7eb;font-size:12px;text-align:center;">🎬 智谱清影</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // 尝试使用Pollinations视频生成（需要时间较长）
+            const statusText = document.getElementById('video-status-text');
+            const statusSub = document.getElementById('video-status-sub');
+            
+            try {
+                statusText.textContent = '正在调用AI视频生成引擎...';
+                statusSub.textContent = '此过程无需API密钥，但耗时较长';
+                
+                // 使用fetch调用Pollinations视频API
+                const videoUrl = `https://gen.pollinations.ai/video/${encodeURIComponent(prompt.substring(0, 80))}?duration=4&width=640&height=360`;
+                
+                // 设置5分钟超时
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 300000);
+                
+                statusText.textContent = 'AI正在生成视频画面...';
+                statusSub.textContent = '预计需要1-3分钟，请勿关闭窗口';
+                
+                const response = await fetch(videoUrl, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    if (blob.size > 1000) {
+                        const videoBlobUrl = URL.createObjectURL(blob);
+                        document.getElementById('video-gen-status').style.display = 'none';
+                        document.getElementById('video-gen-result').style.display = 'block';
+                        document.getElementById('generated-video').src = videoBlobUrl;
+                        document.getElementById('video-download-link').href = videoBlobUrl;
+                        showToast('视频生成成功！', 'success');
+                        return;
+                    }
+                }
+                throw new Error('视频生成失败');
+            } catch (error) {
+                console.log('Pollinations视频生成失败:', error);
+                statusText.textContent = '免费视频API暂时不可用';
+                statusSub.textContent = '请使用下方专业视频生成平台';
+                document.getElementById('video-gen-platforms').style.display = 'block';
+                
+                // 显示提示
+                const status = document.getElementById('video-gen-status');
+                status.innerHTML = `
+                    <div style="margin-bottom:16px;">
+                        <i class="fas fa-external-link-alt" style="font-size:32px;color:#3b82f6;"></i>
+                    </div>
+                    <p style="font-size:14px;color:#e5e7eb;">请选择视频生成平台</p>
+                    <p style="font-size:12px;color:#9ca3af;margin-top:6px;">复制提示词到平台中生成视频</p>
+                    <textarea readonly style="width:100%;margin-top:12px;padding:8px;background:#16213e;border:1px solid #333;border-radius:6px;color:white;font-size:11px;" rows="3">${prompt}</textarea>
+                    <button onclick="navigator.clipboard.writeText('${prompt.replace(/'/g, "\\'")}');showToast('提示词已复制', 'success');" style="margin-top:8px;padding:6px 16px;background:#3b82f6;color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px;">复制提示词</button>
+                `;
+            }
         }
 
         // 下载图片
@@ -2392,42 +2526,6 @@
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-        }
-
-        // 单镜头生成视频 - 跳转到视频生成平台
-        function generateSingleVideo(promptEncoded, shotNumber) {
-            const prompt = decodeURIComponent(promptEncoded);
-            // 提供多个视频生成平台选项
-            const platforms = [
-                { name: '可灵AI (推荐)', url: 'https://klingai.kuaishou.com/', desc: '国产最强文生视频' },
-                { name: '即梦AI', url: 'https://jimeng.jianying.com/', desc: '字节跳动视频生成' },
-                { name: '智谱清影', url: 'https://open.bigmodel.cn/', desc: '开源视频模型' },
-                { name: 'MiniMax海螺', url: 'https://hailuoai.video/', desc: '人物动态自然' }
-            ];
-            
-            let html = `<div style="text-align:left;">
-                <p style="margin-bottom:12px;font-size:14px;">为镜头${shotNumber}生成视频，请选择视频生成平台：</p>`;
-            platforms.forEach(p => {
-                html += `<div style="margin-bottom:8px;padding:10px;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#fff'" onclick="window.open('${p.url}','_blank')">`;
-                html += `<strong style="font-size:13px;color:#333;">${p.name}</strong>`;
-                html += `<span style="font-size:12px;color:#6b7280;margin-left:8px;">${p.desc}</span>`;
-                html += `</div>`;
-            });
-            html += `<div style="margin-top:12px;padding:10px;background:#f0f7ff;border-radius:8px;font-size:12px;color:#4a6cf7;">
-                <i class="fas fa-lightbulb"></i> 提示：复制以下提示词到视频生成平台使用：<br/>
-                <textarea readonly style="width:100%;margin-top:6px;padding:6px;font-size:11px;border:1px solid #ddd;border-radius:4px;" rows="2">${prompt}</textarea>
-            </div></div>`;
-            
-            // 使用toast或弹窗显示
-            const modal = document.createElement('div');
-            modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10001;display:flex;align-items:center;justify-content:center;';
-            modal.innerHTML = `
-                <div style="background:white;border-radius:12px;padding:24px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;">
-                    <h3 style="margin-bottom:16px;font-size:18px;color:#333;"><i class="fas fa-video" style="color:#8b5cf6;"></i> 生成镜头${shotNumber}视频</h3>
-                    ${html}
-                    <button onclick="this.parentElement.parentElement.remove()" style="margin-top:16px;width:100%;padding:10px;background:#6b7280;color:white;border:none;border-radius:8px;cursor:pointer;">关闭</button>
-                </div>`;
-            document.body.appendChild(modal);
         }
 
         async function generateCopywriting() {

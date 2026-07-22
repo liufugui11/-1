@@ -979,7 +979,7 @@
     <div class="main-content">
         <div class="static-banner" id="static-banner" style="display:none;">
             <i class="fas fa-info-circle"></i>
-            <span>当前为纯前端演示版本，所有内容由本地模板生成。如需AI智能生成，请<a href="#" onclick="openConfigModal();return false;">配置大模型API密钥</a>或在本地部署完整后端服务。</span>
+            <span>当前为纯前端演示版本。配置大模型API密钥后即可使用真实AI功能（支持通义千问/DeepSeek/Kimi/智谱GLM等），请<a href="#" onclick="openConfigModal();return false;">配置大模型API密钥</a>或在本地部署完整后端服务。</span>
         </div>
         <div class="tabs">
             <button class="tab active" data-tab="script">
@@ -1550,16 +1550,36 @@
                 <label style="display:block;margin-bottom:6px;font-size:14px;font-weight:600;color:#333;">AI服务提供商</label>
                 <select id="config-provider" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;">
                     <option value="dashscope">通义千问 (DashScope) - 推荐，免费额度大</option>
-                    <option value="deepseek">DeepSeek (深度求索) - 推理能力强</option>
+                    <option value="deepseek">DeepSeek (深度求索) - 推理能力强，价格极低</option>
                     <option value="kimi">Kimi (月之暗面) - 超长上下文</option>
+                    <option value="zhipu">智谱GLM (ChatGLM) - 国产开源强模型</option>
+                    <option value="lingyi">零一万物 (Yi) - 李开复创办</option>
+                    <option value="minimax">MiniMax - 多模态能力强</option>
+                    <option value="baichuan">百川智能 (Baichuan) - 中文理解强</option>
                     <option value="doubao">豆包 (火山引擎) - 性价比高</option>
                     <option value="openai">OpenAI (GPT-4o) - 综合最强</option>
+                    <option value="custom">自定义接口 - 兼容OpenAI格式的任意接口</option>
                 </select>
             </div>
 
             <div style="margin-bottom:16px;">
                 <label style="display:block;margin-bottom:6px;font-size:14px;font-weight:600;color:#333;">API密钥</label>
                 <input type="password" id="config-api-key" placeholder="sk-xxxxxxxxxxxxxxxx" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;" />
+            </div>
+
+            <div id="custom-config-fields" style="display:none;margin-bottom:16px;padding:12px;background:#f5f7fa;border-radius:8px;">
+                <div style="margin-bottom:10px;">
+                    <label style="display:block;margin-bottom:4px;font-size:13px;font-weight:600;color:#333;">API接口地址</label>
+                    <input type="text" id="config-custom-url" placeholder="https://api.example.com/v1/chat/completions" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;" />
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="display:block;margin-bottom:4px;font-size:13px;font-weight:600;color:#333;">模型名称</label>
+                    <input type="text" id="config-custom-model" placeholder="gpt-4o-mini / glm-4 / etc." style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;" />
+                </div>
+                <div>
+                    <label style="display:block;margin-bottom:4px;font-size:13px;font-weight:600;color:#333;">自定义请求头（可选，JSON格式）</label>
+                    <input type="text" id="config-custom-headers" placeholder='{"X-Custom-Header":"value"}' style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;" />
+                </div>
             </div>
 
             <div id="config-help" style="margin-bottom:20px;padding:12px;background:#f5f7fa;border-radius:8px;font-size:13px;color:#666;line-height:1.6;">
@@ -1582,6 +1602,27 @@
                 <div id="help-openai" style="display:none;">
                     获取方式：访问 <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#4a6cf7;">OpenAI平台</a> → 创建API Key<br/>
                     综合能力最强，需要绑定支付方式和海外网络
+                </div>
+                <div id="help-zhipu" style="display:none;">
+                    获取方式：访问 <a href="https://open.bigmodel.cn/usercenter/apikeys" target="_blank" style="color:#4a6cf7;">智谱AI开放平台</a> → 创建API Key<br/>
+                    GLM-4系列模型，国产开源强模型，支持中文理解、代码生成
+                </div>
+                <div id="help-lingyi" style="display:none;">
+                    获取方式：访问 <a href="https://platform.lingyiwanwu.com/apikeys" target="_blank" style="color:#4a6cf7;">零一万物平台</a> → 创建API Key<br/>
+                    Yi系列模型，李开复创办，中英双语能力强
+                </div>
+                <div id="help-minimax" style="display:none;">
+                    获取方式：访问 <a href="https://platform.minimaxi.com/user-center/basic-information/interface-key" target="_blank" style="color:#4a6cf7;">MiniMax开放平台</a> → 创建API Key<br/>
+                    多模态能力强，文本生成和语音合成都出色
+                </div>
+                <div id="help-baichuan" style="display:none;">
+                    获取方式：访问 <a href="https://platform.baichuan-ai.com/console/apikey" target="_blank" style="color:#4a6cf7;">百川智能平台</a> → 创建API Key<br/>
+                    中文理解能力强，适合中文内容创作
+                </div>
+                <div id="help-custom" style="display:none;">
+                    自定义兼容OpenAI Chat Completions格式的任意API接口<br/>
+                    填写完整的API地址（如 https://your-api.com/v1/chat/completions）和模型名称<br/>
+                    适用于私有部署模型、代理服务或其他兼容接口
                 </div>
             </div>
             
@@ -1637,7 +1678,7 @@
             const el = document.getElementById('ai-status-text');
             const apiStatusEl = document.querySelector('.api-status span');
             if (configured) {
-                const labels = {dashscope:'通义千问', deepseek:'DeepSeek', kimi:'Kimi', doubao:'豆包', openai:'GPT-4o'};
+                const labels = {dashscope:'通义千问', deepseek:'DeepSeek', kimi:'Kimi', zhipu:'智谱GLM', lingyi:'零一万物', minimax:'MiniMax', baichuan:'百川', doubao:'豆包', openai:'GPT-4o', custom:'自定义接口'};
                 const label = labels[type] || type;
                 el.textContent = `AI已连接 (${label})`;
                 if (apiStatusEl) apiStatusEl.textContent = `当前使用 ${label} 大模型生成内容`;
@@ -1657,10 +1698,12 @@
         }
 
         document.getElementById('config-provider').addEventListener('change', function() {
-            ['dashscope', 'deepseek', 'kimi', 'doubao', 'openai'].forEach(p => {
+            const providers = ['dashscope', 'deepseek', 'kimi', 'zhipu', 'lingyi', 'minimax', 'baichuan', 'doubao', 'openai', 'custom'];
+            providers.forEach(p => {
                 const el = document.getElementById('help-' + p);
                 if (el) el.style.display = this.value === p ? 'block' : 'none';
             });
+            document.getElementById('custom-config-fields').style.display = this.value === 'custom' ? 'block' : 'none';
         });
 
         async function saveApiKey() {
@@ -1683,10 +1726,28 @@
 
             // 静态模式下直接保存到localStorage
             if (IS_STATIC) {
-                setStoredConfig({ provider, api_key: apiKey });
+                const provider = document.getElementById('config-provider').value;
+                const apiKey = document.getElementById('config-api-key').value.trim();
+                const customUrl = document.getElementById('config-custom-url') ? document.getElementById('config-custom-url').value.trim() : '';
+                const customModel = document.getElementById('config-custom-model') ? document.getElementById('config-custom-model').value.trim() : '';
+                const customHeaders = document.getElementById('config-custom-headers') ? document.getElementById('config-custom-headers').value.trim() : '';
+
+                const config = { provider, api_key: apiKey };
+                if (provider === 'custom') {
+                    if (!customUrl || !customModel) {
+                        resultEl.style.background = '#fff3f3';
+                        resultEl.style.color = '#c33';
+                        resultEl.textContent = '请填写完整的API地址和模型名称';
+                        return;
+                    }
+                    config.custom_url = customUrl;
+                    config.custom_model = customModel;
+                    if (customHeaders) config.custom_headers = customHeaders;
+                }
+                setStoredConfig(config);
                 resultEl.style.background = '#f0fff0';
                 resultEl.style.color = '#2a8';
-                const labels = {dashscope:'通义千问', deepseek:'DeepSeek', kimi:'Kimi', doubao:'豆包', openai:'GPT-4o'};
+                const labels = {dashscope:'通义千问', deepseek:'DeepSeek', kimi:'Kimi', zhipu:'智谱GLM', lingyi:'零一万物', minimax:'MiniMax', baichuan:'百川', doubao:'豆包', openai:'GPT-4o', custom:'自定义接口'};
                 resultEl.textContent = `✅ API密钥已保存到浏览器（${labels[provider] || provider}）`;
                 updateAIStatus(provider, true);
                 setTimeout(() => { closeConfigModal(); }, 1500);
@@ -1767,9 +1828,167 @@
             document.getElementById('remix-type-input').value = type;
         }
 
+        // ============================================================
+        // 前端直调LLM（静态模式下真实调用AI）
+        // ============================================================
+        const LLM_PROVIDERS = {
+            dashscope: {
+                name: '通义千问',
+                url: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+                model: 'qwen-turbo',
+                headers: (key) => ({ 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' })
+            },
+            deepseek: {
+                name: 'DeepSeek',
+                url: 'https://api.deepseek.com/chat/completions',
+                model: 'deepseek-chat',
+                headers: (key) => ({ 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' })
+            },
+            kimi: {
+                name: 'Kimi',
+                url: 'https://api.moonshot.cn/v1/chat/completions',
+                model: 'moonshot-v1-8k',
+                headers: (key) => ({ 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' })
+            },
+            zhipu: {
+                name: '智谱GLM',
+                url: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+                model: 'glm-4-flash',
+                headers: (key) => ({ 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' })
+            },
+            lingyi: {
+                name: '零一万物',
+                url: 'https://api.lingyiwanwu.com/v1/chat/completions',
+                model: 'yi-large',
+                headers: (key) => ({ 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' })
+            },
+            minimax: {
+                name: 'MiniMax',
+                url: 'https://api.minimax.chat/v1/text/chatcompletion_v2',
+                model: 'abab6.5s-chat',
+                headers: (key) => ({ 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' })
+            },
+            baichuan: {
+                name: '百川',
+                url: 'https://api.baichuan-ai.com/v1/chat/completions',
+                model: 'Baichuan2-Turbo',
+                headers: (key) => ({ 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' })
+            },
+            doubao: {
+                name: '豆包',
+                url: 'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
+                model: 'doubao-pro-32k',
+                headers: (key) => ({ 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' })
+            },
+            openai: {
+                name: 'OpenAI',
+                url: 'https://api.openai.com/v1/chat/completions',
+                model: 'gpt-4o-mini',
+                headers: (key) => ({ 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' })
+            }
+        };
+
+        // 从localStorage获取完整配置
+        function getAIConfig() {
+            return getStoredConfig();
+        }
+
+        // 前端直接调用LLM（OpenAI兼容格式）
+        async function callLLMDirect(prompt, systemPrompt) {
+            const cfg = getAIConfig();
+            if (!cfg.provider || !cfg.api_key) {
+                throw new Error('未配置API密钥');
+            }
+
+            let url, model, headers;
+            if (cfg.provider === 'custom') {
+                if (!cfg.custom_url || !cfg.custom_model) {
+                    throw new Error('自定义接口未配置完整');
+                }
+                url = cfg.custom_url;
+                model = cfg.custom_model;
+                headers = { 'Authorization': `Bearer ${cfg.api_key}`, 'Content-Type': 'application/json' };
+                // 合并自定义headers
+                if (cfg.custom_headers) {
+                    try {
+                        const extraHeaders = JSON.parse(cfg.custom_headers);
+                        Object.assign(headers, extraHeaders);
+                    } catch(e) {}
+                }
+            } else {
+                const provider = LLM_PROVIDERS[cfg.provider];
+                if (!provider) throw new Error(`不支持的provider: ${cfg.provider}`);
+                url = provider.url;
+                model = cfg.model || provider.model;
+                headers = provider.headers(cfg.api_key);
+            }
+
+            const body = {
+                model: model,
+                messages: [
+                    { role: 'system', content: systemPrompt || '你是一位专业的安全生产视频内容创作专家。' },
+                    { role: 'user', content: prompt }
+                ],
+                temperature: 0.7,
+                max_tokens: 2000
+            };
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`API调用失败(${response.status}): ${errText.substring(0, 200)}`);
+            }
+
+            const data = await response.json();
+            if (data.choices && data.choices[0] && data.choices[0].message) {
+                return data.choices[0].message.content;
+            }
+            throw new Error('API返回格式异常: ' + JSON.stringify(data).substring(0, 200));
+        }
+
+        // 检查是否已配置AI
+        function isAIConfigured() {
+            const cfg = getAIConfig();
+            return !!(cfg.provider && cfg.api_key);
+        }
+
+        // 从文本中提取JSON
+        function extractJSON(text) {
+            if (!text) return null;
+            // 尝试从markdown代码块中提取
+            const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+            if (codeBlockMatch) {
+                try { return JSON.parse(codeBlockMatch[1].trim()); } catch(e) {}
+            }
+            // 尝试直接解析
+            try { return JSON.parse(text.trim()); } catch(e) {}
+            // 尝试找到第一个{和最后一个}之间的内容
+            const start = text.indexOf('{');
+            const end = text.lastIndexOf('}');
+            if (start !== -1 && end !== -1 && end > start) {
+                try { return JSON.parse(text.substring(start, end + 1)); } catch(e) {}
+            }
+            return null;
+        }
+
         async function callAPI(endpoint, data) {
-            // 静态托管模式下直接返回null，触发现有的mock回退
+            // 静态托管模式
             if (IS_STATIC) {
+                // 如果已配置AI密钥，尝试通过前端直调LLM来处理请求
+                if (isAIConfigured()) {
+                    try {
+                        return await handleStaticAIRequest(endpoint, data);
+                    } catch(error) {
+                        console.error('[静态模式] AI调用失败:', error);
+                        // AI调用失败时返回特殊标记，让调用方知道是AI错误
+                        return { success: false, error: error.message, ai_error: true };
+                    }
+                }
                 console.log('[静态模式] Mock API:', endpoint);
                 return null;
             }
@@ -1784,6 +2003,137 @@
                 console.error('API Error:', error);
                 return null;
             }
+        }
+
+        // 静态模式下通过前端直调LLM处理各种API请求
+        async function handleStaticAIRequest(endpoint, data) {
+            // 脚本生成
+            if (endpoint === '/api/safety/generate-script') {
+                const lengthMap = { short: '30-60秒短视频', medium: '2-3分钟中等长度', long: '5-10分钟长视频' };
+                const prompt = `请为安全生产主题"${data.topic}"生成一个${lengthMap[data.length] || '中等长度'}的培训脚本。\n要求：\n1. 包含多个场景，每个场景有画面描述和旁白\n2. 语气专业但有感染力\n3. 包含安全警示和操作要点\n4. 格式：【场景X：标题】\n画面：...\n旁白："..."`;
+                const systemPrompt = '你是一位专业的安全生产视频脚本作家，擅长创作有感染力的安全培训内容。';
+                const result = await callLLMDirect(prompt, systemPrompt);
+                return { success: true, script: result };
+            }
+
+            // 内容分析
+            if (endpoint === '/api/safety/analyze') {
+                const prompt = `请分析以下安全生产脚本内容的质量和合规性：\n\n${data.script}\n\n请输出JSON格式，包含字段：\n- safety_score: 安全合规性评分(1-10)\n- completeness: 内容完整性评分(1-10)\n- engagement: 吸引力评分(1-10)\n- suggestions: 优化建议数组\n- key_points: 关键点数组`;
+                const result = await callLLMDirect(prompt, '你是安全生产内容分析专家。请务必输出纯JSON格式。');
+                const parsed = extractJSON(result);
+                if (parsed) return { success: true, analysis: parsed };
+                return { success: true, analysis: { safety_score: 7, completeness: 7, engagement: 7, suggestions: ['内容基本完整'], key_points: ['安全操作规范'], raw: result } };
+            }
+
+            // 分镜生成
+            if (endpoint === '/api/safety/generate-storyboard') {
+                const prompt = `请将以下安全生产脚本转换为视频分镜：\n\n${data.script}\n\n请输出JSON数组格式，每个分镜包含：\n- shot_number: 镜号\n- description: 画面描述\n- visual_prompt: AI绘图提示词(英文)\n- duration: 时长(秒)`;
+                const result = await callLLMDirect(prompt, '你是视频分镜设计师。请务必输出纯JSON数组格式。');
+                const parsed = extractJSON(result);
+                if (parsed && Array.isArray(parsed)) return { success: true, storyboard: parsed };
+                return { success: true, storyboard: [{ shot_number: 1, description: '开场画面', visual_prompt: 'Safety production scene', duration: 5 }] };
+            }
+
+            // 文案创作
+            if (endpoint === '/api/safety/generate-copywriting') {
+                const typeMap = { video_title: '视频标题', hook: '开头钩子', cta: '引导语', hashtag: '话题标签', full_copy: '完整文案' };
+                const prompt = `请为以下内容创作${typeMap[data.copy_type] || '文案'}，目标平台：${data.platform || '通用'}\n\n内容：${data.content}\n\n请直接输出文案内容，不要其他说明。`;
+                const result = await callLLMDirect(prompt, '你是短视频文案创作专家，擅长写出吸引人的文案。');
+                return { success: true, copywriting: result };
+            }
+
+            // 视频解析
+            if (endpoint === '/api/video-analysis/analyze') {
+                const dimNames = {
+                    language: '语言风格', visual: '画面风格', effects: '呈现效果',
+                    standards: '标准达标', propagation: '平台传播', comprehensive: '综合'
+                };
+                const dim = data.dimension || 'comprehensive';
+                const dimName = dimNames[dim] || dim;
+
+                if (dim === 'comprehensive') {
+                    const prompt = `请从5个维度深度解析以下视频内容：语言风格、画面风格、呈现效果、标准达标、平台传播效果。\n\n视频内容：${data.video_text}\n\n请输出JSON格式，包含5个key：language_style, visual_style, presentation_effects, standards, platform_propagation。\n每个维度包含评分(1-10)和详细分析字段。`;
+                    const result = await callLLMDirect(prompt, '你是专业视频内容分析师。请务必输出纯JSON格式。');
+                    const parsed = extractJSON(result);
+                    if (parsed && (parsed.language_style || parsed.visual_style)) {
+                        return { success: true, dimension: dim, analysis: parsed };
+                    }
+                } else {
+                    const fieldMap = {
+                        language: { key: 'tone', prompt: '分析语气基调、词汇层次、句式特点、叙述节奏、情感诉求方式。输出字段：tone, vocabulary_level, sentence_pattern, narration_rhythm, emotion_appeal, language_features(数组), score, suggestion' },
+                        visual: { key: 'color_tone', prompt: '分析色彩基调、构图风格、光影效果、视觉元素、剪辑风格。输出字段：color_tone, composition_style, lighting_style, visual_elements(数组), editing_style, visual_mood, consistency, score, suggestion' },
+                        effects: { key: 'overall_effect', prompt: '评估信息清晰度、吸引力、记忆留存、行动召唤力。输出字段：information_clarity, engagement_level, memory_retention, call_to_action, storytelling, interactivity, strengths(数组), weaknesses(数组), overall_effect, optimization' },
+                        standards: { key: 'overall_standard', prompt: '评估安全规范符合度、法规依从性、行业标准。输出字段：safety_compliance, regulatory_adherence, industry_standard, educational_value, practical_guidance, completeness, met_standards(数组), unmet_standards(数组), overall_standard, improvement' },
+                        propagation: { key: 'overall_virality', prompt: '分析各平台适配度和爆款潜力。输出字段：platforms(数组,每项含platform,suitability,predicted_reach,viral_potential), best_platform, worst_platform, overall_virality, key_factors(数组), risk_factors(数组), strategy' }
+                    };
+                    const fieldInfo = fieldMap[dim];
+                    if (fieldInfo) {
+                        const prompt = `请分析以下视频内容的${dimName}：\n\n${data.video_text}\n\n${fieldInfo.prompt}`;
+                        const result = await callLLMDirect(prompt, '你是专业视频分析师。请务必输出纯JSON格式。');
+                        const parsed = extractJSON(result);
+                        if (parsed && parsed[fieldInfo.key]) {
+                            if (dim === 'comprehensive') {
+                                return { success: true, dimension: dim, analysis: parsed };
+                            } else {
+                                return { success: true, dimension: dim, analysis: parsed };
+                            }
+                        }
+                    }
+                }
+                // 解析失败返回null走mock
+                return null;
+            }
+
+            // 技能执行
+            if (endpoint === '/api/skills/execute') {
+                const skillPrompts = {
+                    'video_analysis_language': { sys: '你是视频语言风格分析师。输出纯JSON：tone,vocabulary_level,sentence_pattern,narration_rhythm,emotion_appeal,language_features(数组),score,suggestion', param: 'video_text' },
+                    'video_analysis_visual': { sys: '你是视频画面风格分析师。输出纯JSON：color_tone,composition_style,lighting_style,visual_elements(数组),editing_style,visual_mood,consistency,score,suggestion', param: 'video_text' },
+                    'video_analysis_effects': { sys: '你是视频呈现效果分析师。输出纯JSON：information_clarity,engagement_level,memory_retention,call_to_action,storytelling,interactivity,strengths(数组),weaknesses(数组),overall_effect,optimization', param: 'video_text' },
+                    'video_analysis_standards': { sys: '你是安全标准评估专家。输出纯JSON：safety_compliance,regulatory_adherence,industry_standard,educational_value,practical_guidance,completeness,met_standards(数组),unmet_standards(数组),overall_standard,improvement', param: 'video_text' },
+                    'video_analysis_propagation': { sys: '你是视频传播分析师。输出纯JSON：platforms(数组,含platform,suitability,predicted_reach,viral_potential),best_platform,worst_platform,overall_virality,key_factors(数组),risk_factors(数组),strategy', param: 'video_text' },
+                    'video_analysis_comprehensive': { sys: '你是视频综合分析师。输出纯JSON含5个key:language_style,visual_style,presentation_effects,standards,platform_propagation', param: 'video_text' },
+                    'script_generate_safety': { sys: '你是安全生产脚本作家。', param: 'topic', extra: 'length' },
+                };
+
+                const skillId = data.skill_id;
+                const params = data.params || {};
+                const skillInfo = skillPrompts[skillId];
+
+                if (skillInfo) {
+                    let prompt;
+                    if (skillId === 'script_generate_safety') {
+                        const lengthMap = { short: '短视频(30-60秒)', medium: '中等(2-3分钟)', long: '长视频(5-10分钟)' };
+                        prompt = `请为安全主题"${params.topic}"生成${lengthMap[params.length] || '中等'}培训脚本。包含多个场景(画面描述+旁白)。`;
+                    } else if (skillId.startsWith('video_analysis_comprehensive')) {
+                        prompt = `请综合分析以下视频内容(5维度)：\n${params.video_text}`;
+                    } else {
+                        prompt = `请分析以下视频内容：\n${params.video_text || ''}`;
+                    }
+                    const result = await callLLMDirect(prompt, skillInfo.sys);
+                    // 尝试解析JSON
+                    const parsed = extractJSON(result);
+                    if (parsed) return { success: true, skill_id: skillId, result: parsed };
+                    return { success: true, skill_id: skillId, result: result };
+                }
+
+                // 其他技能
+                if (skillId === 'copywriting_single' || skillId === 'copywriting_full' || skillId === 'copywriting_distribution') {
+                    const prompt = `请为内容创作文案：\n${params.content || params.script || ''}\n类型：${params.copy_type || '全案'}\n平台：${params.platform || '通用'}`;
+                    const result = await callLLMDirect(prompt, '你是文案创作专家。');
+                    return { success: true, skill_id: skillId, result: result };
+                }
+                if (skillId === 'storyboard_generate' || skillId === 'storyboard_remix') {
+                    const prompt = `请将以下脚本转为视频分镜(JSON数组,含shot_number,description,visual_prompt,duration)：\n${params.script || ''}`;
+                    const result = await callLLMDirect(prompt, '你是分镜设计师。输出纯JSON数组。');
+                    const parsed = extractJSON(result);
+                    if (parsed && Array.isArray(parsed)) return { success: true, skill_id: skillId, result: parsed };
+                    return { success: true, skill_id: skillId, result: result };
+                }
+            }
+
+            // 其他未处理的端点返回null走mock
+            return null;
         }
 
         async function generateScript() {
@@ -2488,8 +2838,13 @@ ${data.result.hashtag || ''}`;
             {id:'dashscope',name:'通义千问 (DashScope)',configured:false,default_model:'qwen-turbo',models:['qwen-turbo','qwen-plus','qwen-max','qwen-long'],help_url:'https://dashscope.console.aliyun.com/apiKey',help_text:'阿里云通义千问，国内访问稳定，中文能力强'},
             {id:'deepseek',name:'DeepSeek (深度求索)',configured:false,default_model:'deepseek-chat',models:['deepseek-chat','deepseek-coder','deepseek-reasoner'],help_url:'https://platform.deepseek.com/api_keys',help_text:'推理能力强，代码和数学出色'},
             {id:'kimi',name:'Kimi (月之暗面)',configured:false,default_model:'moonshot-v1-8k',models:['moonshot-v1-8k','moonshot-v1-32k','moonshot-v1-128k'],help_url:'https://platform.moonshot.cn/console/api-keys',help_text:'超长上下文，擅长长文本处理'},
+            {id:'zhipu',name:'智谱GLM (ChatGLM)',configured:false,default_model:'glm-4-flash',models:['glm-4-flash','glm-4','glm-4-plus'],help_url:'https://open.bigmodel.cn/usercenter/apikeys',help_text:'国产开源强模型，支持中文理解、代码生成'},
+            {id:'lingyi',name:'零一万物 (Yi)',configured:false,default_model:'yi-large',models:['yi-large','yi-medium','yi-spark'],help_url:'https://platform.lingyiwanwu.com/apikeys',help_text:'李开复创办，中英双语能力强'},
+            {id:'minimax',name:'MiniMax',configured:false,default_model:'abab6.5s-chat',models:['abab6.5s-chat','abab6.5-chat'],help_url:'https://platform.minimaxi.com/user-center/basic-information/interface-key',help_text:'多模态能力强，文本生成和语音合成都出色'},
+            {id:'baichuan',name:'百川智能 (Baichuan)',configured:false,default_model:'Baichuan2-Turbo',models:['Baichuan2-Turbo','Baichuan-7B-Chat'],help_url:'https://platform.baichuan-ai.com/console/apikey',help_text:'中文理解能力强，适合中文内容创作'},
             {id:'doubao',name:'豆包 (火山引擎)',configured:false,default_model:'doubao-pro-32k',models:['doubao-pro-32k','doubao-lite-32k'],help_url:'https://console.volcengine.com/ark/',help_text:'字节跳动豆包大模型，性价比高'},
             {id:'openai',name:'OpenAI (GPT)',configured:false,default_model:'gpt-4o-mini',models:['gpt-4o-mini','gpt-4o','gpt-4-turbo'],help_url:'https://platform.openai.com/api-keys',help_text:'综合能力最强，需海外网络'},
+            {id:'custom',name:'自定义接口',configured:false,default_model:'自定义',models:[],help_url:'#',help_text:'兼容OpenAI格式的任意接口，支持私有部署模型'},
         ];
 
         async function loadModels() {

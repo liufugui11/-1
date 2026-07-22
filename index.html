@@ -1006,6 +1006,18 @@
                 <i class="fas fa-share-alt"></i>
                 <span>分发</span>
             </button>
+            <button class="tab" data-tab="analysis">
+                <i class="fas fa-search-plus"></i>
+                <span>视频解析</span>
+            </button>
+            <button class="tab" data-tab="skills">
+                <i class="fas fa-magic"></i>
+                <span>技能中心</span>
+            </button>
+            <button class="tab" data-tab="models">
+                <i class="fas fa-robot"></i>
+                <span>模型广场</span>
+            </button>
         </div>
 
         <div id="script" class="tab-content active">
@@ -1427,6 +1439,99 @@
         </div>
     </div>
 
+    <!-- 视频解析页 -->
+    <div id="analysis" class="tab-content">
+        <div class="section-title">
+            <i class="fas fa-search-plus"></i>
+            <span>视频深度解析</span>
+        </div>
+        <div class="api-status">
+            <i class="fas fa-info-circle"></i>
+            <span>从5大维度深度解析视频内容：语言风格、画面风格、呈现效果、标准达标、平台传播</span>
+        </div>
+        <div class="config-section">
+            <h3><i class="fas fa-keyboard"></i> 输入视频内容</h3>
+            <div class="form-group">
+                <label for="analysis-video-text">视频文本/脚本/旁白内容</label>
+                <textarea id="analysis-video-text" placeholder="粘贴视频的文案、脚本、旁白或描述内容，AI将从5个维度进行深度解析..." style="min-height:120px;"></textarea>
+            </div>
+            <div class="form-group">
+                <label>解析维度</label>
+                <div class="duration-options" id="analysis-dimensions">
+                    <div class="duration-option active" onclick="selectAnalysisDimension('comprehensive', this)"><h4>综合解析</h4><p>5大维度全分析</p></div>
+                    <div class="duration-option" onclick="selectAnalysisDimension('language', this)"><h4>语言风格</h4><p>语气/词汇/句式</p></div>
+                    <div class="duration-option" onclick="selectAnalysisDimension('visual', this)"><h4>画面风格</h4><p>色彩/构图/光影</p></div>
+                    <div class="duration-option" onclick="selectAnalysisDimension('effects', this)"><h4>呈现效果</h4><p>吸引力/记忆点</p></div>
+                    <div class="duration-option" onclick="selectAnalysisDimension('standards', this)"><h4>标准达标</h4><p>合规性评估</p></div>
+                    <div class="duration-option" onclick="selectAnalysisDimension('propagation', this)"><h4>平台传播</h4><p>爆款潜力分析</p></div>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="runVideoAnalysis()">
+                    <i class="fas fa-play"></i> 开始解析
+                </button>
+                <button class="btn btn-secondary" onclick="document.getElementById('analysis-video-text').value='';document.getElementById('analysis-result').style.display='none';">
+                    <i class="fas fa-eraser"></i> 清空
+                </button>
+            </div>
+        </div>
+        <div id="analysis-result" style="display:none;margin-top:20px;">
+            <div id="analysis-content"></div>
+        </div>
+    </div>
+
+    <!-- 技能中心页 -->
+    <div id="skills" class="tab-content">
+        <div class="section-title">
+            <i class="fas fa-magic"></i>
+            <span>技能中心</span>
+        </div>
+        <div class="api-status">
+            <i class="fas fa-info-circle"></i>
+            <span>选择需要的技能按类型调用，每个技能独立完成特定任务</span>
+        </div>
+        <div class="form-group" style="margin-bottom:16px;">
+            <label>技能分类</label>
+            <div class="duration-options" id="skill-categories">
+                <div class="duration-option active" onclick="filterSkills('', this)"><h4>全部</h4></div>
+                <div class="duration-option" onclick="filterSkills('video_analysis', this)"><h4>视频解析</h4></div>
+                <div class="duration-option" onclick="filterSkills('script_generation', this)"><h4>脚本生成</h4></div>
+                <div class="duration-option" onclick="filterSkills('storyboard', this)"><h4>分镜生成</h4></div>
+                <div class="duration-option" onclick="filterSkills('copywriting', this)"><h4>文案创作</h4></div>
+            </div>
+        </div>
+        <div class="storyboard-grid" id="skills-grid"></div>
+        <div id="skill-execution-panel" style="display:none;margin-top:20px;"></div>
+    </div>
+
+    <!-- 模型广场页 -->
+    <div id="models" class="tab-content">
+        <div class="section-title">
+            <i class="fas fa-robot"></i>
+            <span>模型广场</span>
+        </div>
+        <div class="api-status">
+            <i class="fas fa-info-circle"></i>
+            <span>支持5大主流大模型 + 视频生成模型推荐，点击配置按钮即可接入</span>
+        </div>
+        <div class="config-section">
+            <h3><i class="fas fa-brain"></i> 文本大模型</h3>
+            <div class="storyboard-grid" id="models-grid"></div>
+        </div>
+        <div class="config-section">
+            <h3><i class="fas fa-video"></i> 视频生成模型推荐</h3>
+            <div class="form-group">
+                <label>生成类型</label>
+                <div class="duration-options">
+                    <div class="duration-option active" onclick="loadVideoGenModels('all', this)"><h4>全部</h4></div>
+                    <div class="duration-option" onclick="loadVideoGenModels('text_to_video', this)"><h4>文生视频</h4></div>
+                    <div class="duration-option" onclick="loadVideoGenModels('image_to_video', this)"><h4>图生视频</h4></div>
+                </div>
+            </div>
+            <div class="storyboard-grid" id="video-gen-grid"></div>
+        </div>
+    </div>
+
     <div class="loading-overlay" id="loading-overlay" style="display: none;">
         <div class="loading-content">
             <div class="loading-spinner"></div>
@@ -1444,24 +1549,39 @@
             <div style="margin-bottom:16px;">
                 <label style="display:block;margin-bottom:6px;font-size:14px;font-weight:600;color:#333;">AI服务提供商</label>
                 <select id="config-provider" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;">
-                    <option value="dashscope">阿里云 DashScope (通义千问) - 推荐</option>
-                    <option value="openai">OpenAI (GPT-4o-mini)</option>
+                    <option value="dashscope">通义千问 (DashScope) - 推荐，免费额度大</option>
+                    <option value="deepseek">DeepSeek (深度求索) - 推理能力强</option>
+                    <option value="kimi">Kimi (月之暗面) - 超长上下文</option>
+                    <option value="doubao">豆包 (火山引擎) - 性价比高</option>
+                    <option value="openai">OpenAI (GPT-4o) - 综合最强</option>
                 </select>
             </div>
-            
+
             <div style="margin-bottom:16px;">
                 <label style="display:block;margin-bottom:6px;font-size:14px;font-weight:600;color:#333;">API密钥</label>
                 <input type="password" id="config-api-key" placeholder="sk-xxxxxxxxxxxxxxxx" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;" />
             </div>
-            
+
             <div id="config-help" style="margin-bottom:20px;padding:12px;background:#f5f7fa;border-radius:8px;font-size:13px;color:#666;line-height:1.6;">
                 <div id="help-dashscope">
-                    获取方式：访问 <a href="https://dashscope.console.aliyun.com/" target="_blank" style="color:#4a6cf7;">阿里云DashScope</a> → 注册登录 → 创建API-KEY<br/>
-                    免费额度：新用户赠送100万Token
+                    获取方式：访问 <a href="https://dashscope.console.aliyun.com/apiKey" target="_blank" style="color:#4a6cf7;">阿里云DashScope</a> → 注册登录 → 创建API-KEY<br/>
+                    免费额度：新用户赠送100万Token，国内访问稳定
+                </div>
+                <div id="help-deepseek" style="display:none;">
+                    获取方式：访问 <a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:#4a6cf7;">DeepSeek平台</a> → 创建API Key<br/>
+                    推理能力强，代码和数学出色，价格极低
+                </div>
+                <div id="help-kimi" style="display:none;">
+                    获取方式：访问 <a href="https://platform.moonshot.cn/console/api-keys" target="_blank" style="color:#4a6cf7;">月之暗面平台</a> → 创建API Key<br/>
+                    超长上下文（128K），擅长长文本处理
+                </div>
+                <div id="help-doubao" style="display:none;">
+                    获取方式：访问 <a href="https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey" target="_blank" style="color:#4a6cf7;">火山引擎</a> → 创建API Key<br/>
+                    字节跳动豆包大模型，性价比高，响应快
                 </div>
                 <div id="help-openai" style="display:none;">
                     获取方式：访问 <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#4a6cf7;">OpenAI平台</a> → 创建API Key<br/>
-                    需要绑定支付方式
+                    综合能力最强，需要绑定支付方式和海外网络
                 </div>
             </div>
             
@@ -1517,7 +1637,8 @@
             const el = document.getElementById('ai-status-text');
             const apiStatusEl = document.querySelector('.api-status span');
             if (configured) {
-                const label = type === 'dashscope' ? '通义千问' : (type === 'openai' ? 'GPT-4o' : type);
+                const labels = {dashscope:'通义千问', deepseek:'DeepSeek', kimi:'Kimi', doubao:'豆包', openai:'GPT-4o'};
+                const label = labels[type] || type;
                 el.textContent = `AI已连接 (${label})`;
                 if (apiStatusEl) apiStatusEl.textContent = `当前使用 ${label} 大模型生成内容`;
             } else {
@@ -1536,8 +1657,10 @@
         }
 
         document.getElementById('config-provider').addEventListener('change', function() {
-            document.getElementById('help-dashscope').style.display = this.value === 'dashscope' ? 'block' : 'none';
-            document.getElementById('help-openai').style.display = this.value === 'openai' ? 'block' : 'none';
+            ['dashscope', 'deepseek', 'kimi', 'doubao', 'openai'].forEach(p => {
+                const el = document.getElementById('help-' + p);
+                if (el) el.style.display = this.value === p ? 'block' : 'none';
+            });
         });
 
         async function saveApiKey() {
@@ -1563,14 +1686,15 @@
                 setStoredConfig({ provider, api_key: apiKey });
                 resultEl.style.background = '#f0fff0';
                 resultEl.style.color = '#2a8';
-                resultEl.textContent = `✅ API密钥已保存到浏览器（${provider === 'dashscope' ? 'DashScope' : 'OpenAI'}）`;
+                const labels = {dashscope:'通义千问', deepseek:'DeepSeek', kimi:'Kimi', doubao:'豆包', openai:'GPT-4o'};
+                resultEl.textContent = `✅ API密钥已保存到浏览器（${labels[provider] || provider}）`;
                 updateAIStatus(provider, true);
                 setTimeout(() => { closeConfigModal(); }, 1500);
                 return;
             }
 
             try {
-                const resp = await fetch(`${API_BASE}/api/config/set-api-key`, {
+                const resp = await fetch(`${API_BASE}/api/models/set-key`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ provider, api_key: apiKey })
@@ -1581,7 +1705,7 @@
                     resultEl.style.background = '#f0fff0';
                     resultEl.style.color = '#2a8';
                     resultEl.textContent = `✅ ${data.message}`;
-                    updateAIStatus(data.client_type, data.is_configured);
+                    updateAIStatus(provider, true);
                     setTimeout(() => { closeConfigModal(); }, 1500);
                 } else {
                     resultEl.style.background = '#fff3f3';
@@ -2090,6 +2214,390 @@ ${data.result.hashtag || ''}`;
         function hideLoading() {
             document.getElementById('loading-overlay').style.display = 'none';
         }
+
+        // ============================================================
+        // 视频解析功能
+        // ============================================================
+        let analysisDimension = 'comprehensive';
+
+        function selectAnalysisDimension(dim, el) {
+            document.querySelectorAll('#analysis-dimensions .duration-option').forEach(o => o.classList.remove('active'));
+            el.classList.add('active');
+            analysisDimension = dim;
+        }
+
+        async function runVideoAnalysis() {
+            const videoText = document.getElementById('analysis-video-text').value.trim();
+            if (!videoText) { alert('请输入视频文本内容'); return; }
+
+            const dimensionNames = {comprehensive:'综合解析',language:'语言风格',visual:'画面风格',effects:'呈现效果',standards:'标准达标',propagation:'平台传播'};
+            showLoading('正在解析视频...', `AI正在进行${dimensionNames[analysisDimension]}分析`);
+
+            const data = await callAPI('/api/video-analysis/analyze', { video_text: videoText, dimension: analysisDimension, platform: 'all' });
+
+            if (data && data.success) {
+                renderAnalysisResult(data.analysis, analysisDimension);
+            } else {
+                renderAnalysisResult(getMockAnalysis(analysisDimension, videoText), analysisDimension);
+            }
+            document.getElementById('analysis-result').style.display = 'block';
+            hideLoading();
+        }
+
+        function renderAnalysisResult(analysis, dimension) {
+            const container = document.getElementById('analysis-content');
+            let html = '';
+
+            if (dimension === 'comprehensive' || dimension === 'language') {
+                const ls = analysis.language_style || analysis;
+                html += renderAnalysisCard('语言风格', 'fa-comment-dots', [
+                    ['语气基调', ls.tone], ['词汇层次', ls.vocabulary_level], ['句式特点', ls.sentence_pattern],
+                    ['叙述节奏', ls.narration_rhythm], ['情感诉求', ls.emotion_appeal],
+                    ['语言特征', (ls.language_features||[]).join('、 ')],
+                    ['评分', renderScore(ls.score)], ['优化建议', ls.suggestion]
+                ]);
+            }
+            if (dimension === 'comprehensive' || dimension === 'visual') {
+                const vs = analysis.visual_style || analysis;
+                html += renderAnalysisCard('画面风格', 'fa-image', [
+                    ['色彩基调', vs.color_tone], ['构图风格', vs.composition_style], ['光影风格', vs.lighting_style],
+                    ['视觉元素', (vs.visual_elements||[]).join('、 ')], ['剪辑风格', vs.editing_style],
+                    ['画面情绪', vs.visual_mood], ['一致性', renderScore(vs.consistency)], ['评分', renderScore(vs.score)],
+                    ['优化建议', vs.suggestion]
+                ]);
+            }
+            if (dimension === 'comprehensive' || dimension === 'effects') {
+                const pe = analysis.presentation_effects || analysis;
+                html += renderAnalysisCard('呈现效果', 'fa-chart-line', [
+                    ['信息清晰度', renderScore(pe.information_clarity)], ['吸引力', renderScore(pe.engagement_level)],
+                    ['记忆留存', renderScore(pe.memory_retention)], ['行动召唤力', renderScore(pe.call_to_action)],
+                    ['叙事性', renderScore(pe.storytelling)], ['互动性', renderScore(pe.interactivity)],
+                    ['优势', (pe.strengths||[]).join('、 ')], ['不足', (pe.weaknesses||[]).join('、 ')],
+                    ['综合评分', renderScore(pe.overall_effect)], ['优化建议', pe.optimization]
+                ]);
+            }
+            if (dimension === 'comprehensive' || dimension === 'standards') {
+                const st = analysis.standards || analysis;
+                html += renderAnalysisCard('标准达标', 'fa-clipboard-check', [
+                    ['安全规范符合度', renderScore(st.safety_compliance)], ['法规依从性', renderScore(st.regulatory_adherence)],
+                    ['行业标准', renderScore(st.industry_standard)], ['教育价值', renderScore(st.educational_value)],
+                    ['实操指导性', renderScore(st.practical_guidance)], ['内容完整性', renderScore(st.completeness)],
+                    ['已达到', (st.met_standards||[]).join('、 ')], ['未达到', (st.unmet_standards||[]).join('、 ')],
+                    ['综合评分', renderScore(st.overall_standard)], ['提升建议', st.improvement]
+                ]);
+            }
+            if (dimension === 'comprehensive' || dimension === 'propagation') {
+                const pp = analysis.platform_propagation || analysis;
+                let platformRows = '';
+                (pp.platforms||[]).forEach(p => {
+                    platformRows += `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.1);">
+                        <span>${p.platform}</span><span>适配${renderScore(p.suitability)} ${p.predicted_reach} 爆款${renderScore(p.viral_potential)}</span></div>`;
+                });
+                html += renderAnalysisCard('平台传播', 'fa-share-alt', [
+                    ['各平台分析', platformRows],
+                    ['最佳平台', pp.best_platform], ['最差平台', pp.worst_platform],
+                    ['综合传播力', renderScore(pp.overall_virality)],
+                    ['关键因素', (pp.key_factors||[]).join('、 ')], ['风险因素', (pp.risk_factors||[]).join('、 ')],
+                    ['传播策略', pp.strategy]
+                ]);
+            }
+            container.innerHTML = html;
+        }
+
+        function renderAnalysisCard(title, icon, items) {
+            let rows = items.map(([label, value]) =>
+                `<div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <span style="min-width:100px;color:var(--text-muted);font-size:13px;">${label}</span>
+                    <span style="flex:1;font-size:13px;">${value || '—'}</span>
+                </div>`).join('');
+            return `<div class="config-section" style="margin-bottom:16px;">
+                <h3><i class="fas ${icon}" style="color:var(--accent-blue);"></i> ${title}</h3>
+                ${rows}
+            </div>`;
+        }
+
+        function renderScore(score) {
+            if (!score) return '—';
+            const s = parseInt(score);
+            const stars = '★'.repeat(s) + '☆'.repeat(10 - s);
+            return `<span style="color:var(--warning);">${stars}</span> <span style="color:var(--text-muted);">${s}/10</span>`;
+        }
+
+        function getMockAnalysis(dimension, videoText) {
+            if (dimension === 'comprehensive') {
+                return {
+                    language_style: {tone:'专业严肃',vocabulary_level:'通俗易懂',sentence_pattern:'短句有力',narration_rhythm:'张弛有度',emotion_appeal:'理性说服',language_features:['设问引导','感叹强调','安全专业术语'],score:7,suggestion:'可增加更多真实案例和设问句式以增强代入感'},
+                    visual_style: {color_tone:'高对比度',composition_style:'特写近景',lighting_style:'自然光',visual_elements:['安全标识','工业场景','人物特写'],editing_style:'快切节奏',visual_mood:'警示醒目',consistency:7,score:7,suggestion:'建议增加3D动画演示复杂操作流程'},
+                    presentation_effects: {information_clarity:7,engagement_level:6,memory_retention:6,call_to_action:5,storytelling:6,interactivity:4,strengths:['信息传达清晰','专业性强'],weaknesses:['互动性不足','行动召唤较弱'],overall_effect:6,optimization:'建议加入互动问答环节'},
+                    standards: {safety_compliance:7,regulatory_adherence:6,industry_standard:7,educational_value:7,practical_guidance:6,completeness:7,met_standards:['基本安全规范覆盖','防护装备展示'],unmet_standards:['应急演练细节','法规条文引用'],overall_standard:7,improvement:'建议增加法规条文引用'},
+                    platform_propagation: {platforms:[{platform:'抖音',suitability:8,predicted_reach:'高',viral_potential:7},{platform:'微信视频号',suitability:9,predicted_reach:'高',viral_potential:6}],best_platform:'微信视频号',worst_platform:'小红书',overall_virality:7,key_factors:['安全话题刚需','专业可信'],risk_factors:['内容偏严肃'],strategy:'主攻微信视频号和抖音'}
+                };
+            }
+            return getMockAnalysis('comprehensive', videoText)[dimension === 'language' ? 'language_style' : dimension === 'visual' ? 'visual_style' : dimension === 'effects' ? 'presentation_effects' : dimension === 'standards' ? 'standards' : 'platform_propagation'];
+        }
+
+        // ============================================================
+        // 技能中心功能
+        // ============================================================
+        let allSkills = [];
+        let currentSkillFilter = '';
+
+        async function loadSkills() {
+            const data = await callAPI('/api/skills/list', null) || {};
+            if (data.skills) {
+                allSkills = data.skills;
+            } else {
+                // 静态模式mock
+                allSkills = [
+                    {id:'video_analysis_language',name:'语言风格解析',category:'video_analysis',description:'分析视频的语气基调、词汇层次、句式特点',icon:'fa-comment-dots',params:['video_text']},
+                    {id:'video_analysis_visual',name:'画面风格解析',category:'video_analysis',description:'分析色彩基调、构图风格、光影效果',icon:'fa-image',params:['video_text']},
+                    {id:'video_analysis_effects',name:'呈现效果解析',category:'video_analysis',description:'评估信息清晰度、吸引力、记忆留存',icon:'fa-chart-line',params:['video_text']},
+                    {id:'video_analysis_standards',name:'标准达标解析',category:'video_analysis',description:'评估安全规范符合度、法规依从性',icon:'fa-clipboard-check',params:['video_text']},
+                    {id:'video_analysis_propagation',name:'平台传播解析',category:'video_analysis',description:'分析各平台适配度、爆款潜力',icon:'fa-share-alt',params:['video_text','platform']},
+                    {id:'video_analysis_comprehensive',name:'综合视频解析',category:'video_analysis',description:'一次性完成5大维度全面解析',icon:'fa-layer-group',params:['video_text','platform']},
+                    {id:'script_generate_safety',name:'安全脚本生成',category:'script_generation',description:'根据主题生成专业安全培训脚本',icon:'fa-file-alt',params:['topic','length']},
+                    {id:'script_remix',name:'视频二创脚本',category:'script_generation',description:'将原始视频内容改编为二创脚本',icon:'fa-recycle',params:['original_script','remix_type']},
+                    {id:'storyboard_generate',name:'安全分镜生成',category:'storyboard',description:'将脚本转换为视频分镜',icon:'fa-images',params:['script','style']},
+                    {id:'storyboard_remix',name:'二创分镜生成',category:'storyboard',description:'为二创脚本生成视频分镜',icon:'fa-film',params:['script','style']},
+                    {id:'copywriting_single',name:'单项文案创作',category:'copywriting',description:'生成单一类型文案',icon:'fa-pen-fancy',params:['content','copy_type','platform']},
+                    {id:'copywriting_full',name:'全案文案包',category:'copywriting',description:'一站式生成全套文案',icon:'fa-allergies',params:['content','platform']},
+                    {id:'copywriting_distribution',name:'分发文案生成',category:'copywriting',description:'为脚本生成分发文案',icon:'fa-bullhorn',params:['script','platform']},
+                ];
+            }
+            renderSkills();
+        }
+
+        function filterSkills(category, el) {
+            document.querySelectorAll('#skill-categories .duration-option').forEach(o => o.classList.remove('active'));
+            el.classList.add('active');
+            currentSkillFilter = category;
+            renderSkills();
+        }
+
+        function renderSkills() {
+            const grid = document.getElementById('skills-grid');
+            const filtered = currentSkillFilter ? allSkills.filter(s => s.category === currentSkillFilter) : allSkills;
+            grid.innerHTML = filtered.map(s => `
+                <div class="storyboard-card" onclick="openSkillPanel('${s.id}')" style="cursor:pointer;">
+                    <div class="storyboard-thumbnail">
+                        <span class="shot-number">${s.category}</span>
+                        <i class="fas ${s.icon}"></i>
+                    </div>
+                    <div class="storyboard-info">
+                        <h4>${s.name}</h4>
+                        <p>${s.description}</p>
+                        <div class="storyboard-prompt">参数: ${s.params.join(', ')}</div>
+                    </div>
+                </div>
+            `).join('');
+            grid.style.display = 'grid';
+        }
+
+        function openSkillPanel(skillId) {
+            const skill = allSkills.find(s => s.id === skillId);
+            if (!skill) return;
+            const panel = document.getElementById('skill-execution-panel');
+            let paramFields = skill.params.map(p => {
+                if (p === 'video_text' || p === 'script' || p === 'content' || p === 'original_script') {
+                    return `<div class="form-group"><label>${p}</label><textarea id="skill-param-${p}" placeholder="输入${p}..." style="min-height:100px;"></textarea></div>`;
+                } else if (p === 'length') {
+                    return `<div class="form-group"><label>${p}</label><select id="skill-param-${p}"><option value="short">短视频</option><option value="medium">中等</option><option value="long">长视频</option></select></div>`;
+                } else if (p === 'platform') {
+                    return `<div class="form-group"><label>${p}</label><select id="skill-param-${p}"><option value="all">全部</option><option value="douyin">抖音</option><option value="video_channel">视频号</option><option value="kuaishou">快手</option></select></div>`;
+                } else if (p === 'style') {
+                    return `<div class="form-group"><label>${p}</label><select id="skill-param-${p}"><option value="safety_realistic">写实</option><option value="safety_3d">3D</option><option value="safety_animation">动画</option></select></div>`;
+                } else if (p === 'copy_type') {
+                    return `<div class="form-group"><label>${p}</label><select id="skill-param-${p}"><option value="video_title">标题</option><option value="hook">钩子</option><option value="cta">引导语</option><option value="hashtag">标签</option><option value="full_copy">全案</option></select></div>`;
+                } else if (p === 'remix_type') {
+                    return `<div class="form-group"><label>${p}</label><select id="skill-param-${p}"><option value="short">短视频版</option><option value="deep_dive">深度版</option><option value="animation">动画版</option></select></div>`;
+                }
+                return `<div class="form-group"><label>${p}</label><input type="text" id="skill-param-${p}" placeholder="输入${p}..." /></div>`;
+            }).join('');
+
+            panel.innerHTML = `
+                <div class="config-section">
+                    <h3><i class="fas ${skill.icon}"></i> ${skill.name}</h3>
+                    <p style="color:var(--text-muted);margin-bottom:16px;">${skill.description}</p>
+                    ${paramFields}
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="executeSkill('${skillId}')"><i class="fas fa-play"></i> 执行技能</button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('skill-execution-panel').style.display='none';"><i class="fas fa-times"></i> 关闭</button>
+                    </div>
+                    <div id="skill-result" style="margin-top:16px;display:none;"></div>
+                </div>`;
+            panel.style.display = 'block';
+        }
+
+        async function executeSkill(skillId) {
+            const skill = allSkills.find(s => s.id === skillId);
+            const params = {};
+            skill.params.forEach(p => {
+                const el = document.getElementById('skill-param-' + p);
+                if (el) params[p] = el.value;
+            });
+
+            // 参数映射兼容
+            if (params.original_script) params.script = params.original_script;
+
+            showLoading('正在执行技能...', `AI正在执行: ${skill.name}`);
+            const data = await callAPI('/api/skills/execute', { skill_id: skillId, params });
+            const resultEl = document.getElementById('skill-result');
+
+            if (data && data.success) {
+                resultEl.style.display = 'block';
+                resultEl.innerHTML = `<div class="config-section" style="background:rgba(16,185,129,0.1);border-color:var(--success);">
+                    <h3 style="color:var(--success);"><i class="fas fa-check-circle"></i> 执行成功</h3>
+                    <pre style="white-space:pre-wrap;font-size:13px;line-height:1.8;color:var(--text-main);">${formatSkillResult(data.result)}</pre>
+                </div>`;
+            } else {
+                // 静态模式mock
+                resultEl.style.display = 'block';
+                resultEl.innerHTML = `<div class="config-section" style="background:rgba(245,158,11,0.1);border-color:var(--warning);">
+                    <h3 style="color:var(--warning);"><i class="fas fa-info-circle"></i> 演示模式结果</h3>
+                    <pre style="white-space:pre-wrap;font-size:13px;line-height:1.8;color:var(--text-main);">${formatSkillResult(getMockSkillResult(skillId, params))}</pre>
+                </div>`;
+            }
+            hideLoading();
+        }
+
+        function formatSkillResult(result) {
+            if (typeof result === 'string') return result;
+            try { return JSON.stringify(result, null, 2); } catch(e) { return String(result); }
+        }
+
+        function getMockSkillResult(skillId, params) {
+            if (skillId.startsWith('video_analysis')) {
+                return getMockAnalysis(skillId.replace('video_analysis_', '').replace('comprehensive','comprehensive'), params.video_text || '');
+            }
+            if (skillId === 'script_generate_safety') {
+                return `【安全生产培训脚本：${params.topic || '安全主题'}】\n\n场景一：事故警示\n画面：事故现场\n旁白："安全生产，警钟长鸣。"\n\n场景二：安全准备\n画面：工人穿戴防护装备\n旁白："正确佩戴个人防护装备。"\n\n（演示模式生成）`;
+            }
+            if (skillId.startsWith('storyboard')) {
+                return [{shot_number:1,description:'安全生产警示画面',visual_prompt:'Industrial safety warning scene'},{shot_number:2,description:'安全操作演示',visual_prompt:'Safety operation demonstration'},{shot_number:3,description:'安全总结',visual_prompt:'Safety conclusion scene'}];
+            }
+            if (skillId.startsWith('copywriting')) {
+                return {video_title:`【安全警示】${params.content||'安全生产'}关键要点`,hook:'90%的事故可以避免！',cta:'关注我学更多安全知识',hashtag:'#安全生产 #安全培训'};
+            }
+            return '演示模式结果';
+        }
+
+        // ============================================================
+        // 模型广场功能
+        // ============================================================
+        const mockProviders = [
+            {id:'dashscope',name:'通义千问 (DashScope)',configured:false,default_model:'qwen-turbo',models:['qwen-turbo','qwen-plus','qwen-max','qwen-long'],help_url:'https://dashscope.console.aliyun.com/apiKey',help_text:'阿里云通义千问，国内访问稳定，中文能力强'},
+            {id:'deepseek',name:'DeepSeek (深度求索)',configured:false,default_model:'deepseek-chat',models:['deepseek-chat','deepseek-coder','deepseek-reasoner'],help_url:'https://platform.deepseek.com/api_keys',help_text:'推理能力强，代码和数学出色'},
+            {id:'kimi',name:'Kimi (月之暗面)',configured:false,default_model:'moonshot-v1-8k',models:['moonshot-v1-8k','moonshot-v1-32k','moonshot-v1-128k'],help_url:'https://platform.moonshot.cn/console/api-keys',help_text:'超长上下文，擅长长文本处理'},
+            {id:'doubao',name:'豆包 (火山引擎)',configured:false,default_model:'doubao-pro-32k',models:['doubao-pro-32k','doubao-lite-32k'],help_url:'https://console.volcengine.com/ark/',help_text:'字节跳动豆包大模型，性价比高'},
+            {id:'openai',name:'OpenAI (GPT)',configured:false,default_model:'gpt-4o-mini',models:['gpt-4o-mini','gpt-4o','gpt-4-turbo'],help_url:'https://platform.openai.com/api-keys',help_text:'综合能力最强，需海外网络'},
+        ];
+
+        async function loadModels() {
+            let providers = mockProviders;
+            if (!IS_STATIC) {
+                try {
+                    const resp = await fetch(`${API_BASE}/api/models/providers`);
+                    const data = await resp.json();
+                    if (data.success && data.providers) providers = data.providers;
+                } catch(e) {}
+            } else {
+                // 静态模式下读取localStorage中已配置的provider
+                const cfg = getStoredConfig();
+                if (cfg.provider) {
+                    providers = mockProviders.map(p => ({...p, configured: p.id === cfg.provider}));
+                }
+            }
+
+            const grid = document.getElementById('models-grid');
+            grid.innerHTML = providers.map(p => `
+                <div class="storyboard-card">
+                    <div class="storyboard-thumbnail">
+                        <span class="shot-number" style="background:${p.configured?'rgba(16,185,129,0.8)':'rgba(245,158,11,0.8)'}">${p.configured?'已配置':'未配置'}</span>
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="storyboard-info">
+                        <h4>${p.name}</h4>
+                        <p>${p.help_text}</p>
+                        <p style="font-size:11px;color:var(--text-muted);">默认模型: ${p.default_model}</p>
+                        <p style="font-size:11px;color:var(--text-muted);">支持: ${p.models.join(', ')}</p>
+                        <button class="btn btn-primary" style="width:100%;margin-top:8px;padding:8px;font-size:12px;" onclick="configureModel('${p.id}','${p.name}')">
+                            <i class="fas fa-key"></i> ${p.configured?'重新配置':'配置API密钥'}
+                        </button>
+                        <a href="${p.help_url}" target="_blank" style="display:block;text-align:center;margin-top:4px;font-size:11px;color:var(--accent-blue);">获取密钥 →</a>
+                    </div>
+                </div>
+            `).join('');
+            grid.style.display = 'grid';
+        }
+
+        function configureModel(providerId, providerName) {
+            document.getElementById('config-provider').value = providerId;
+            document.getElementById('config-provider').dispatchEvent(new Event('change'));
+            document.getElementById('config-api-key').value = '';
+            document.getElementById('config-result').style.display = 'none';
+            openConfigModal();
+        }
+
+        const mockVideoGen = {
+            text_to_video: [
+                {name:'可灵 (Kling)',provider:'快手',description:'国内领先的文生视频模型，支持最长2分钟',max_duration:'120秒',resolution:'1080p',strength:'运动幅度大，中文友好',api_url:'https://klingai.kuaishou.com/',recommended:true},
+                {name:'智谱清影 (CogVideoX)',provider:'智谱AI',description:'开源视频生成模型',max_duration:'10秒',resolution:'720p',strength:'开源可部署',api_url:'https://open.bigmodel.cn/',recommended:true},
+                {name:'MiniMax 海螺AI',provider:'MiniMax',description:'高质量视频生成，人物表现力强',max_duration:'6秒',resolution:'1080p',strength:'人物动态自然',api_url:'https://hailuoai.video/',recommended:true},
+                {name:'Vidu',provider:'生数科技',description:'国产视频生成模型',max_duration:'16秒',resolution:'1080p',strength:'风格化能力强',api_url:'https://www.vidu.cn/',recommended:false},
+                {name:'Sora',provider:'OpenAI',description:'OpenAI视频生成模型，全球领先',max_duration:'60秒',resolution:'1080p',strength:'物理模拟逼真',api_url:'https://openai.com/sora/',recommended:false},
+            ],
+            image_to_video: [
+                {name:'可灵 (Kling) 图生视频',provider:'快手',description:'从静态图片生成动态视频',max_duration:'10秒',resolution:'1080p',strength:'图生视频行业领先',api_url:'https://klingai.kuaishou.com/',recommended:true},
+                {name:'即梦 (Dreamina)',provider:'字节跳动',description:'字节跳动AI创作平台',max_duration:'12秒',resolution:'1080p',strength:'与抖音生态打通',api_url:'https://jimeng.jianying.com/',recommended:true},
+                {name:'Stable Video Diffusion',provider:'Stability AI',description:'开源图生视频模型',max_duration:'4秒',resolution:'576x1024',strength:'开源免费',api_url:'https://stability.ai/',recommended:false},
+                {name:'Runway Gen-3',provider:'Runway',description:'专业级视频生成工具',max_duration:'10秒',resolution:'1080p',strength:'专业控制能力强',api_url:'https://runwayml.com/',recommended:true},
+            ]
+        };
+
+        async function loadVideoGenModels(genType, el) {
+            if (el) {
+                el.parentElement.querySelectorAll('.duration-option').forEach(o => o.classList.remove('active'));
+                el.classList.add('active');
+            }
+            let recs = mockVideoGen;
+            if (!IS_STATIC) {
+                try {
+                    const resp = await fetch(`${API_BASE}/api/models/video-gen?gen_type=${genType}`);
+                    const data = await resp.json();
+                    if (data.success && data.recommendations) recs = data.recommendations;
+                } catch(e) {}
+            }
+
+            const grid = document.getElementById('video-gen-grid');
+            let models = [];
+            if (genType === 'all') {
+                models = [...(recs.text_to_video||[]).map(m=>({...m,type:'文生视频'})), ...(recs.image_to_video||[]).map(m=>({...m,type:'图生视频'}))];
+            } else {
+                models = (recs[genType]||[]).map(m=>({...m,type:genType==='text_to_video'?'文生视频':'图生视频'}));
+            }
+            grid.innerHTML = models.map(m => `
+                <div class="storyboard-card">
+                    <div class="storyboard-thumbnail">
+                        <span class="shot-number" style="background:${m.recommended?'rgba(16,185,129,0.8)':'rgba(59,130,246,0.8)'}">${m.recommended?'★ 推荐':m.type}</span>
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div class="storyboard-info">
+                        <h4>${m.name}</h4>
+                        <p style="color:var(--text-muted);">${m.provider}</p>
+                        <p>${m.description}</p>
+                        <p style="font-size:11px;color:var(--text-muted);">时长:${m.max_duration} | 分辨率:${m.resolution}</p>
+                        <div class="storyboard-prompt">优势: ${m.strength}</div>
+                        <a href="${m.api_url}" target="_blank" style="display:block;text-align:center;margin-top:8px;font-size:12px;color:var(--accent-blue);">访问平台 →</a>
+                    </div>
+                </div>
+            `).join('');
+            grid.style.display = 'grid';
+        }
+
+        // 页面加载时初始化新功能
+        loadSkills();
+        loadModels();
+        loadVideoGenModels('all', null);
     </script>
 </body>
 </html>
